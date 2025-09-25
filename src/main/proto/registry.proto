@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package registry;
 
+option java_multiple_files = true;
+option java_package = "com.github.adnant1.servicediscovery.registry";
+
 // Register
 message RegisterRequest {
     string service_name = 1;
