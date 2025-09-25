@@ -32,7 +32,7 @@ dependencies {
 	implementation 'io.grpc:grpc-protobuf:1.66.0'
 	implementation 'io.grpc:grpc-stub:1.66.0'
 	
-	// Annotations for generated code
+	// Annotations for generated code - provide both for compatibility
 	implementation 'javax.annotation:javax.annotation-api:1.3.2'
 }
 
