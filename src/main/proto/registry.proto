@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package registry;
+
+// Register
+message RegisterRequest {
+    string service_name = 1;
+    string instance_id = 2;
+    string ip = 3;
+    int32 port = 4;
+}
+
+message RegisterResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// Discover
+message ServiceInstance {
+    string instance_id = 1;
+    string ip = 2;
+    int32 port = 3;
+}
+
+message DiscoverRequest {
+    string service_name = 1;
+}
+
+message DiscoverResponse {
+    repeated ServiceInstance instances = 1;
+}
+
+// Heartbeat
+message HeartbeatRequest {
+    string service_name = 1;
+    string instance_id = 2;
+}
+
+message HeartbeatResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// Deregister
+message DeregisterRequest {
+    string service_name = 1;
+    string instance_id = 2;
+}
+
+message DeregisterResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+// Service Definition
+service RegistryService {
+    rpc Register(RegisterRequest) returns (RegisterResponse);
+    rpc Discover(DiscoverRequest) returns (DiscoverResponse);
+    rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+    rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+}
