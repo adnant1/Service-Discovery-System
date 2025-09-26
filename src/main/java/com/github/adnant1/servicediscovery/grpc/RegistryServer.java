@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 
 /**
  * Creates and starts the gRPC server for the service registry.
@@ -45,20 +46,10 @@ public class RegistryServer {
     /**
      * Stops the gRPC server.
      */
+    @PreDestroy
     public void stop() {
         if (server != null) {
             server.shutdown();
-        }
-    }
-
-    /**
-     * Block the main thread until the server is terminated.
-     * 
-     * @throws InterruptedException If the thread is interrupted while waiting.
-     */
-    public void blockUntilShutdown() throws InterruptedException {
-        if (server != null) {
-            server.awaitTermination();
         }
     }
 }
