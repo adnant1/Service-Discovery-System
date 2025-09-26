@@ -1,24 +1,34 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import org.springframework.stereotype.Component;
+
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Creates and starts the gRPC server for the service registry.
  */
+@Component
 public class RegistryServer {
 
     private Server server;
     private static final int PORT = 50051;
+    private final RegistryServiceImpl registryService;
+
+    public RegistryServer(RegistryServiceImpl registryService) {
+        this.registryService = registryService;
+    }
 
     /**
      * Starts the gRPC server.
      * 
      * @throws Exception If the server fails to start.
      */
+    @PostConstruct
     public void start() throws Exception {
         server = ServerBuilder.forPort(PORT)
-                .addService(new RegistryServiceImpl())
+                .addService(registryService)
                 .build()
                 .start();
         
@@ -50,17 +60,5 @@ public class RegistryServer {
         if (server != null) {
             server.awaitTermination();
         }
-    }
-
-    /**
-     * Main method to start the server.
-     * 
-     * @param args Command line arguments (not used).
-     * @throws Exception If the server fails to start.
-     */
-    public static void main(String[] args) throws Exception {
-        final RegistryServer server = new RegistryServer();
-        server.start();
-        server.blockUntilShutdown();
     }
 }
