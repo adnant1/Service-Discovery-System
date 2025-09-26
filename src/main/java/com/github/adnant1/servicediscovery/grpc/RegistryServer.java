@@ -1,17 +1,19 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 
 /**
  * Creates and starts the gRPC server for the service registry.
  */
+@Profile("!test")
 @Component
-public class RegistryServer {
+public class RegistryServer implements CommandLineRunner {
 
     private Server server;
     private static final int PORT = 50051;
@@ -21,13 +23,8 @@ public class RegistryServer {
         this.registryService = registryService;
     }
 
-    /**
-     * Starts the gRPC server.
-     * 
-     * @throws Exception If the server fails to start.
-     */
-    @PostConstruct
-    public void start() throws Exception {
+    @Override
+    public void run(String... args) throws Exception {
         server = ServerBuilder.forPort(PORT)
                 .addService(registryService)
                 .build()
@@ -35,12 +32,7 @@ public class RegistryServer {
         
         System.out.println("Server started, listening on " + PORT);
 
-        // Shutdown hook so ctrl+c or kill signals stop the server gracefully
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.err.println("Shutting down gRPC server...");
-            RegistryServer.this.stop();
-            System.err.println("Server shut down.");
-        }));
+        server.awaitTermination();
     }
 
     /**
