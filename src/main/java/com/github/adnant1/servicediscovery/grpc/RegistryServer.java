@@ -1,0 +1,38 @@
+package com.github.adnant1.servicediscovery.grpc;
+
+import java.io.IOException;
+
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+
+/**
+ * Creates and starts the gRPC server for the service registry.
+ */
+public class RegistryServer {
+
+    private Server server;
+    private static final int PORT = 50051;
+
+    /**
+     * Starts the gRPC server.
+     * 
+     * @throws IOException If the server fails to start.
+     */
+    public void start() throws IOException {
+        server = ServerBuilder.forPort(PORT)
+                .addService(new RegistryServiceImpl())
+                .build()
+                .start();
+        
+        System.out.println("Server started, listening on " + PORT);
+
+        // Shutdown hook so ctrl+c or kill signals stop the server gracefully
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.err.println("Shutting donw gRPC server...");
+            RegistryServer.this.stop();
+            System.err.println("Server shut down.");
+        }));
+    }
+
+
+}
