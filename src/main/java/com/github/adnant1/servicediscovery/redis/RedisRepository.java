@@ -1,15 +1,16 @@
 package com.github.adnant1.servicediscovery.redis;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Repository;
 
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
 /**
  * Repository class for managing service registry data in Redis.
  */
+@Repository
 public class RedisRepository {
     private final StringRedisTemplate redisTemplate;
     private final int ttlSeconds;
