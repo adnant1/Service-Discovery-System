@@ -38,9 +38,10 @@ public class RedisRepository {
      * 
      * @param serviceName the name of the service
      * @param instanceId the unique ID of the service instance
+     * @return true if the instance was deleted, false if it did not exist
      */
-    public void deleteInstance(String serviceName, String instanceId) {
-
+    public boolean deleteInstance(String serviceName, String instanceId) {
+        return false; // Placeholder return
     }
 
     /**
