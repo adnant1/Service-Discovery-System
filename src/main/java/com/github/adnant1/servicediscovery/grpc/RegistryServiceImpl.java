@@ -112,7 +112,59 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
      */
     @Override
     public void deregister(DeregisterRequest request, StreamObserver<DeregisterResponse> responseObserver) {
-        // Unimplemented method stub
+        String serviceName = request.getServiceName();
+        String instanceId = request.getInstanceId();
+
+        try {
+            // Input validation
+            if (serviceName == null || serviceName.isEmpty()) {
+                DeregisterResponse response = DeregisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Service name cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            if (instanceId == null || instanceId.isEmpty()) {
+                DeregisterResponse response = DeregisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Instance ID cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            // Delete the service instance (if it exists) from Redis and build the corresponding response
+            boolean deleted = redisRepository.deleteInstance(serviceName, instanceId);
+            DeregisterResponse response;
+
+            if (deleted) {
+                response = DeregisterResponse.newBuilder()
+                        .setSuccess(true)
+                        .setMessage("Service deregistered successfully.")
+                        .build();
+            } else {
+                response = DeregisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Service instance not found.")
+                        .build();
+            }
+            
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            // Return gRPC error if Redis operation fails
+            responseObserver.onError(
+                Status.UNAVAILABLE
+                    .withDescription("Redis unavailable: " + e.getMessage())
+                    .withCause(e)
+                    .asRuntimeException()
+            );
+        }
     }
 
     /**
