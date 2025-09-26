@@ -1,6 +1,9 @@
 package com.github.adnant1.servicediscovery.redis;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -30,7 +33,15 @@ public class RedisRepository {
      * @param port the port number of the service instance
      */
     public void saveInstance(String serviceName, String instanceId, String ip, int port) {
+        String key = serviceName + ":" + instanceId;
 
+        Map<String, String> fields = new HashMap<>();
+        fields.put("ip", ip);
+        fields.put("port", String.valueOf(port));
+        fields.put("timestamp", String.valueOf(System.currentTimeMillis()));
+
+        redisTemplate.opsForHash().putAll(key, fields);
+        redisTemplate.expire(key, java.time.Duration.ofSeconds(ttlSeconds));
     } 
 
     /**
