@@ -1,5 +1,7 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import org.springframework.stereotype.Service;
+
 import com.github.adnant1.servicediscovery.redis.RedisRepository;
 import com.github.adnant1.servicediscovery.registry.DeregisterRequest;
 import com.github.adnant1.servicediscovery.registry.DeregisterResponse;
@@ -16,6 +18,7 @@ import io.grpc.stub.StreamObserver;
 /**
  * Implementation of the gRPC service methods for service registry operations.
  */
+@Service
 public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImplBase {
 
     private final RedisRepository redisRepository;
