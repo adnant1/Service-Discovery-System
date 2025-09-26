@@ -34,5 +34,25 @@ public class RegistryServer {
         }));
     }
 
+    /**
+     * Stops the gRPC server.
+     */
+    public void stop() {
+        if (server != null) {
+            server.shutdown();
+        }
+    }
+
+    /**
+     * Block the main thread until the server is terminated.
+     * 
+     * @throws InterruptedException If the thread is interrupted while waiting.
+     */
+    public void blockUntilShutdown() throws InterruptedException {
+        if (server != null) {
+            server.awaitTermination();
+        }
+    }
+
 
 }
