@@ -13,6 +13,7 @@ import com.github.adnant1.servicediscovery.registry.RegisterRequest;
 import com.github.adnant1.servicediscovery.registry.RegisterResponse;
 import com.github.adnant1.servicediscovery.registry.RegistryServiceGrpc;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 /**
@@ -35,7 +36,72 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
      */
     @Override
     public void register(RegisterRequest request, StreamObserver<RegisterResponse> responseObserver) {
-        // Unimplemented method stub
+        String serviceName = request.getServiceName();
+        String instanceId = request.getInstanceId();
+        String ip = request.getIp();
+        int port = request.getPort();
+
+        try {
+            // Input validation
+            if (serviceName == null || serviceName.isEmpty()) {
+                RegisterResponse response = RegisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Service name cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            if (port <= 0 || port > 65535) {
+                RegisterResponse response = RegisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Invalid port number: " + port)
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            if (instanceId == null || instanceId.isEmpty()) {
+                RegisterResponse response = RegisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Instance ID cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            if (ip == null || ip.isEmpty()) {
+                RegisterResponse response = RegisterResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("IP address cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            // Save the service instance to Redis and build success response
+            redisRepository.saveInstance(serviceName, instanceId, ip, port);
+
+            RegisterResponse response = RegisterResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Service registered successfully.")
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            
+        } catch (Exception e) {
+            // Return gRPC error if Redis operation fails
+            responseObserver.onError(
+                Status.UNAVAILABLE
+                    .withDescription("Redis unavailable: " + e.getMessage())
+                    .withCause(e)
+                    .asRuntimeException()
+            );
+        }
     }
 
     /**
