@@ -50,7 +50,7 @@ public class RedisRepository {
      * @return a list of type ServiceInstance
      */
     public List<ServiceInstance> getInstances(String serviceName) {
-
+        return List.of(); // Placeholder return
     }
 
     /**
