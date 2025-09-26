@@ -52,7 +52,9 @@ public class RedisRepository {
      * @return true if the instance was deleted, false if it did not exist
      */
     public boolean deleteInstance(String serviceName, String instanceId) {
-        return false; // Placeholder return
+        String key = serviceName + ":" + instanceId;
+        Boolean result = redisTemplate.delete(key);
+        return Boolean.TRUE.equals(result);
     }
 
     /**
