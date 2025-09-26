@@ -54,5 +54,15 @@ public class RegistryServer {
         }
     }
 
-
+    /**
+     * Main method to start the server.
+     * 
+     * @param args Command line arguments (not used).
+     * @throws Exception If the server fails to start.
+     */
+    public static void main(String[] args) throws Exception {
+        final RegistryServer server = new RegistryServer();
+        server.start();
+        server.blockUntilShutdown();
+    }
 }
