@@ -1,0 +1,19 @@
+services:
+  # Redis instance
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # Service Discovery instance
+  servicediscovery:
+    build: .
+    container_name: servicediscovery
+    ports:
+      - "50051:50051"
+    depends_on:
+      - redis
+    environment:
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
