@@ -1,8 +1,10 @@
 package com.github.adnant1.servicediscovery.redis;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -64,7 +66,37 @@ public class RedisRepository {
      * @return a list of type ServiceInstance
      */
     public List<ServiceInstance> getInstances(String serviceName) {
-        return List.of(); // Placeholder return
+        String pattern = serviceName + ":*";
+        Set<String> keys = redisTemplate.keys(pattern);
+
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+
+        // Map each key to a ServiceInstance object
+        List<ServiceInstance> instances = new ArrayList<>();
+        for (String key: keys) {
+            Map<Object, Object> fields = redisTemplate.opsForHash().entries(key);
+
+            String ip = (String) fields.get("ip");
+            String portStr = (String) fields.get("port");
+
+            String[] parts = key.split(":", 2);
+            String instanceId = (parts.length == 2) ? parts[1] : "";
+
+            if (ip != null && portStr != null && !instanceId.isEmpty()) {
+                int port = Integer.parseInt(portStr);
+                ServiceInstance instance = ServiceInstance.newBuilder()
+                        .setInstanceId(instanceId)
+                        .setIp(ip)
+                        .setPort(port)
+                        .build();
+                
+                instances.add(instance);
+            }
+        }
+
+        return instances;
     }
 
     /**
