@@ -117,22 +117,20 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
         try {
             // Input validation
             if (serviceName == null || serviceName.isEmpty()) {
-                DeregisterResponse response = DeregisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Service name cannot be empty.")
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Service name cannot be empty.")
+                        .asRuntimeException()
+                );
                 return;
             }
 
             if (instanceId == null || instanceId.isEmpty()) {
-                DeregisterResponse response = DeregisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Instance ID cannot be empty.")
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Instance ID cannot be empty.")
+                        .asRuntimeException()
+                );
                 return;
             }
 
