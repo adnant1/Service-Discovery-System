@@ -47,42 +47,38 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
         try {
             // Input validation
             if (serviceName == null || serviceName.isEmpty()) {
-                RegisterResponse response = RegisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Service name cannot be empty.")
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Service name cannot be empty.")
+                        .asRuntimeException()
+                );
                 return;
             }
 
             if (port <= 0 || port > 65535) {
-                RegisterResponse response = RegisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Invalid port number: " + port)
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Invalid port number: " + port)
+                        .asRuntimeException()
+                );
                 return;
             }
 
             if (instanceId == null || instanceId.isEmpty()) {
-                RegisterResponse response = RegisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("Instance ID cannot be empty.")
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Instance ID cannot be empty.")
+                        .asRuntimeException()
+                );
                 return;
             }
 
             if (ip == null || ip.isEmpty()) {
-                RegisterResponse response = RegisterResponse.newBuilder()
-                        .setSuccess(false)
-                        .setMessage("IP address cannot be empty.")
-                        .build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("IP address cannot be empty.")
+                        .asRuntimeException()
+                );
                 return;
             }
 
