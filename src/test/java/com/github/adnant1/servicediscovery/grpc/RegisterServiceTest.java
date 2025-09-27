@@ -2,6 +2,7 @@ package com.github.adnant1.servicediscovery.grpc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,6 +15,9 @@ import com.github.adnant1.servicediscovery.TestStreamObserver;
 import com.github.adnant1.servicediscovery.redis.RedisRepository;
 import com.github.adnant1.servicediscovery.registry.RegisterRequest;
 import com.github.adnant1.servicediscovery.registry.RegisterResponse;
+
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 
 
 /**
@@ -78,12 +82,15 @@ public class RegisterServiceTest {
         service.register(request, observer);
 
         // Assert
-        RegisterResponse response = observer.getResponse();
-        assertNotNull(response);
-        assertFalse(response.getSuccess());
-        assertEquals("Service name cannot be empty.", response.getMessage());
+        // Assert
+        assertNull(observer.getResponse(), "No response expected on invalid input");
+        assertNotNull(observer.getError(), "Expected a gRPC error");
 
-        assertTrue(observer.isCompleted());
-        assertNull(observer.getError());
+        Throwable error = observer.getError();
+        assertInstanceOf(StatusRuntimeException.class, error);
+
+        StatusRuntimeException statusEx = (StatusRuntimeException) error;
+        assertEquals(Status.INVALID_ARGUMENT.getCode(), statusEx.getStatus().getCode());
+        assertTrue(statusEx.getStatus().getDescription().contains("Service name cannot be empty."));
     }
 }
