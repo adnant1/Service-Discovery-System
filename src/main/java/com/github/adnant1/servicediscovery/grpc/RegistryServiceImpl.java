@@ -1,5 +1,7 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.github.adnant1.servicediscovery.redis.RedisRepository;
@@ -12,6 +14,7 @@ import com.github.adnant1.servicediscovery.registry.HeartbeatResponse;
 import com.github.adnant1.servicediscovery.registry.RegisterRequest;
 import com.github.adnant1.servicediscovery.registry.RegisterResponse;
 import com.github.adnant1.servicediscovery.registry.RegistryServiceGrpc;
+import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -175,7 +178,37 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
      */
     @Override
     public void discover(DiscoverRequest request, StreamObserver<DiscoverResponse> responseObserver) {
-        // Unimplemented method stub
+        String serviceName = request.getServiceName();
+
+        try {
+            // Input validation
+            if (serviceName == null || serviceName.isEmpty()) {
+                responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                        .withDescription("Service name cannot be empty.")
+                        .asRuntimeException()
+                );
+                return;
+            }
+
+            // Retrieve service instances from Redis and build the corresponding response
+            List<ServiceInstance> instances = redisRepository.getInstances(serviceName);
+
+            DiscoverResponse response = DiscoverResponse.newBuilder()
+                    .addAllInstances(instances)
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            // Return gRPC error if Redis operation fails
+            responseObserver.onError(
+                Status.UNAVAILABLE
+                    .withDescription("Redis unavailable: " + e.getMessage())
+                    .withCause(e)
+                    .asRuntimeException()
+            );
+        }
     }
 
     /**
