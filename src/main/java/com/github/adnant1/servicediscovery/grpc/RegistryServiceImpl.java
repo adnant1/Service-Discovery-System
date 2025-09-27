@@ -219,6 +219,58 @@ public class RegistryServiceImpl extends RegistryServiceGrpc.RegistryServiceImpl
      */
     @Override
     public void heartbeat(HeartbeatRequest request, StreamObserver<HeartbeatResponse> responseObserver) {
-        // Unimplemented method stub
+        String serviceName = request.getServiceName();
+        String instanceId = request.getInstanceId();
+
+        try {
+            // Input validation
+            if (serviceName == null || serviceName.isEmpty()) {
+                HeartbeatResponse response = HeartbeatResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Service name cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            if (instanceId == null || instanceId.isEmpty()) {
+                HeartbeatResponse response = HeartbeatResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Instance ID cannot be empty.")
+                        .build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            // Refresh the TTL of the service instance in Redis and build the corresponding response
+            boolean refreshed = redisRepository.refreshTtl(serviceName, instanceId);
+            HeartbeatResponse response;
+
+            if (refreshed) {
+                response = HeartbeatResponse.newBuilder()
+                        .setSuccess(true)
+                        .setMessage("Heartbeat received, TTL refreshed.")
+                        .build();
+            } else {
+                response = HeartbeatResponse.newBuilder()
+                        .setSuccess(false)
+                        .setMessage("Service instance not found.")
+                        .build();
+            }
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            // Return gRPC error if Redis operation fails
+            responseObserver.onError(
+                Status.UNAVAILABLE
+                    .withDescription("Redis unavailable: " + e.getMessage())
+                    .withCause(e)
+                    .asRuntimeException()
+            );
+        }
     }
 }
