@@ -104,8 +104,17 @@ public class RedisRepository {
      * 
      * @param serviceName the name of the service
      * @param instanceId the unique ID of the service instance
+     * @return true if the TTL was refreshed, false if the instance does not exist
      */
-    public void refreshTtl(String serviceName, String instanceId) {
+    public boolean refreshTtl(String serviceName, String instanceId) {
+        String key = serviceName + ":" + instanceId;
 
+        Boolean exists = redisTemplate.hasKey(key);
+        if (exists == null || !exists) {
+            return false;
+        }
+
+        redisTemplate.expire(key, java.time.Duration.ofSeconds(ttlSeconds));
+        return true;
     }
 }   
