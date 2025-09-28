@@ -24,6 +24,25 @@ public class NodeIdentityProvider {
     }
 
     /**
+     * Retrieves the node ID from Redis or creates a new one if it doesn't exist.
+     * 
+     * @param port the port number of the node
+     * @return the unique node ID
+     */
+    private String getOrCreateNodeId(int port){
+        String key = "node:id";
+
+        String existingId = redisTemplate.opsForValue().get(key);
+        if (existingId != null) {
+            return existingId;
+        } else {
+            String newId = generateNodeId(port);
+            redisTemplate.opsForValue().set(key, newId);
+            return newId;
+        }
+    }
+
+    /**
      * Generates a unique key for storing the node ID in Redis.
      * ID = hostname:port-UUID(6 chars)
      * 
