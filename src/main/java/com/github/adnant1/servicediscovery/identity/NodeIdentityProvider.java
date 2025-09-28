@@ -50,7 +50,7 @@ public class NodeIdentityProvider {
      * @return the generated key
      */
     private String generateNodeId(int port) {
-        String uuid = java.util.UUID.randomUUID().toString().substring(0, 6);
+        String uuid = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6);
 
         try {
             String hostname = InetAddress.getLocalHost().getHostName();
