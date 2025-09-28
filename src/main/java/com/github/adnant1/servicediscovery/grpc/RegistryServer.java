@@ -1,5 +1,8 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,8 @@ import jakarta.annotation.PreDestroy;
 @Profile("!test")
 @Component
 public class RegistryServer implements CommandLineRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(RegistryServer.class);
 
     private Server server;
     private final int grpcPort;
@@ -31,7 +36,7 @@ public class RegistryServer implements CommandLineRunner {
                 .build()
                 .start();
         
-        System.out.println("Server started, listening on " + PORT);
+        logger.info("[BOOT] gRPC server started, listening on {}", grpcPort);
 
         server.awaitTermination();
     }
