@@ -1,5 +1,7 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import java.net.ServerSocket;
+
 /**
  * Handles gRPC port allocation for the service registry.
  * Starts at the default port 50051 and increments if the port is in use.
@@ -21,6 +23,21 @@ public class GrpcPortAllocator {
         }
 
         return port;
+    }
+
+    /**
+     * Checks if a port is free to use by trying to bind a ServerSocket to it.
+     * 
+     * @param port the port number to check
+     * @return true if the port is free, false otherwise
+     */
+    private static boolean isFree(int port) {
+        try (ServerSocket socket = new ServerSocket(port)) {
+            socket.setReuseAddress(true);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
     
 }
