@@ -16,16 +16,17 @@ import jakarta.annotation.PreDestroy;
 public class RegistryServer implements CommandLineRunner {
 
     private Server server;
-    private static final int PORT = 50051;
+    private final int grpcPort;
     private final RegistryServiceImpl registryService;
 
-    public RegistryServer(RegistryServiceImpl registryService) {
+    public RegistryServer(RegistryServiceImpl registryService, Integer grpcPort) {
         this.registryService = registryService;
+        this.grpcPort = grpcPort;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        server = ServerBuilder.forPort(PORT)
+        server = ServerBuilder.forPort(grpcPort)
                 .addService(registryService)
                 .build()
                 .start();
