@@ -7,6 +7,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import com.github.adnant1.servicediscovery.identity.NodeIdentityProvider;
+
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import jakarta.annotation.PreDestroy;
@@ -23,14 +25,19 @@ public class RegistryServer implements CommandLineRunner {
     private Server server;
     private final Integer grpcPort;
     private final RegistryServiceImpl registryService;
+    private final NodeIdentityProvider nodeIdentityProvider;
 
-    public RegistryServer(RegistryServiceImpl registryService, Integer grpcPort) {
+    public RegistryServer(RegistryServiceImpl registryService, NodeIdentityProvider nodeIdentityProvider, Integer grpcPort) {
         this.registryService = registryService;
+        this.nodeIdentityProvider = nodeIdentityProvider;
         this.grpcPort = grpcPort;
     }
 
     @Override
     public void run(String... args) throws Exception {
+        String nodeId = nodeIdentityProvider.getNodeId();
+        logger.info("[BOOT] Node identity established: {}", nodeId);
+
         server = ServerBuilder.forPort(grpcPort)
                 .addService(registryService)
                 .build()
