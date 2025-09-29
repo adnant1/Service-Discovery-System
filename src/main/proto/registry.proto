@@ -23,6 +23,8 @@ message ServiceInstance {
     string instance_id = 1;
     string ip = 2;
     int32 port = 3;
+    int64 lastUpdated = 4;
+    int64 ttl = 5;
 }
 
 message DiscoverRequest {
@@ -55,10 +57,24 @@ message DeregisterResponse {
     string message = 2;
 }
 
-// Service Definition
+// Gossip Synchronization
+message GossipRequest {
+    map<string, ServiceInstance> instances = 1;
+}
+
+message GossipResponse {
+    bool success = 1;
+}
+
+// Registry Service Definition
 service RegistryService {
     rpc Register(RegisterRequest) returns (RegisterResponse);
     rpc Discover(DiscoverRequest) returns (DiscoverResponse);
     rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
     rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+}
+
+// Gossip Service Definition
+service GossipService {
+    rpc Sync(GossipRequest) returns (GossipResponse);
 }
