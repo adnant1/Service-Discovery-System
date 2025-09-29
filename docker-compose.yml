@@ -11,7 +11,7 @@ services:
     build: .
     container_name: servicediscovery
     ports:
-      - "50001:50051"
+      - "50051:50051"
     depends_on:
       - redis
     environment:
