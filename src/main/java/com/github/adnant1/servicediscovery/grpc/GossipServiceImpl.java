@@ -2,6 +2,7 @@ package com.github.adnant1.servicediscovery.grpc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import com.github.adnant1.servicediscovery.registry.GossipRequest;
 import com.github.adnant1.servicediscovery.registry.GossipResponse;
@@ -9,6 +10,7 @@ import com.github.adnant1.servicediscovery.registry.GossipServiceGrpc;
 
 import io.grpc.stub.StreamObserver;
 
+@Service
 public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
 
     private static final Logger logger = LoggerFactory.getLogger(GossipServiceImpl.class);
