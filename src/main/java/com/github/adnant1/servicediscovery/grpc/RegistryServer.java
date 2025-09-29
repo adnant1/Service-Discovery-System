@@ -25,10 +25,12 @@ public class RegistryServer implements CommandLineRunner {
     private Server server;
     private final Integer grpcPort;
     private final RegistryServiceImpl registryService;
+    private final GossipServiceImpl gossipService;
     private final NodeIdentityProvider nodeIdentityProvider;
 
-    public RegistryServer(RegistryServiceImpl registryService, NodeIdentityProvider nodeIdentityProvider, Integer grpcPort) {
+    public RegistryServer(RegistryServiceImpl registryService, GossipServiceImpl gossipServiceImpl, NodeIdentityProvider nodeIdentityProvider, Integer grpcPort) {
         this.registryService = registryService;
+        this.gossipService = gossipServiceImpl;
         this.nodeIdentityProvider = nodeIdentityProvider;
         this.grpcPort = grpcPort;
     }
@@ -40,6 +42,7 @@ public class RegistryServer implements CommandLineRunner {
 
         server = ServerBuilder.forPort(grpcPort)
                 .addService(registryService)
+                .addService(gossipService)
                 .build()
                 .start();
         
