@@ -21,7 +21,7 @@ public class RegistryServer implements CommandLineRunner {
     private static final Logger logger = LoggerFactory.getLogger(RegistryServer.class);
 
     private Server server;
-    private final int grpcPort;
+    private final Integer grpcPort;
     private final RegistryServiceImpl registryService;
 
     public RegistryServer(RegistryServiceImpl registryService, Integer grpcPort) {
