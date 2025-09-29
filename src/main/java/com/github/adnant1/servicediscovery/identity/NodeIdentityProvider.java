@@ -12,14 +12,24 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 public class NodeIdentityProvider {
     
     private final StringRedisTemplate redisTemplate;
-    private final String nodeId;
+    private final int port;
+    private String nodeId;
 
     public NodeIdentityProvider(StringRedisTemplate redisTemplate, int port) {
         this.redisTemplate = redisTemplate;
-        this.nodeId = getOrCreateNodeId(port);
+        this.port = port;
     }
 
-    public String getNodeId() {
+    // Lazily initialize nodeId to avoid Redis connection on startup
+    /**
+     * Returns the unique node ID, creating it if necessary.
+     * 
+     * @return the unique node ID
+     */
+    public synchronized String getNodeId() {
+        if (nodeId == null) {
+            nodeId = getOrCreateNodeId(port);
+        }
         return nodeId;
     }
 
