@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import com.github.adnant1.servicediscovery.registry.NodeInfo;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
-import ch.qos.logback.core.pattern.parser.Node;
-
 /**
  * Provider for dumping local service state from Redis.
  */
