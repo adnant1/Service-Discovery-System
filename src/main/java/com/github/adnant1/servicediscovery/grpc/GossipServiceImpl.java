@@ -6,9 +6,11 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.github.adnant1.servicediscovery.identity.NodeIdentityProvider;
 import com.github.adnant1.servicediscovery.registry.GossipRequest;
 import com.github.adnant1.servicediscovery.registry.GossipResponse;
 import com.github.adnant1.servicediscovery.registry.GossipServiceGrpc;
+import com.github.adnant1.servicediscovery.registry.NodeInfo;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 import com.github.adnant1.servicediscovery.util.ServiceInstanceSerializer;
 
@@ -24,10 +26,13 @@ public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
 
     private final StringRedisTemplate redisTemplate;
     private final ServiceInstanceSerializer serializer;
+    private final NodeIdentityProvider nodeIdentityProvider;
 
-    public GossipServiceImpl(StringRedisTemplate redisTemplate, ServiceInstanceSerializer serializer) {
+    public GossipServiceImpl(StringRedisTemplate redisTemplate, ServiceInstanceSerializer serializer, 
+                           NodeIdentityProvider nodeIdentityProvider) {
         this.redisTemplate = redisTemplate;
         this.serializer = serializer;
+        this.nodeIdentityProvider = nodeIdentityProvider;
     }
     
     /**
@@ -44,6 +49,7 @@ public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
         int changes = 0;
         long now = System.currentTimeMillis();
 
+        // Service merge
         for (Map.Entry<String, ServiceInstance> entry: request.getInstancesMap().entrySet()) {
             String serviceId = entry.getKey();
             ServiceInstance incomingInstance = entry.getValue();
@@ -65,6 +71,20 @@ public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
                 String serialized = serializer.serialize(incomingInstance);
                 redisTemplate.opsForValue().set(serviceId, serialized, incomingInstance.getTtl(), TimeUnit.SECONDS);
                 changes++;
+            }
+        }
+
+        // Node merge
+        for (Map.Entry<String, NodeInfo> entry: request.getNodesMap().entrySet()) {
+            String nodeId = entry.getKey();
+            NodeInfo info = entry.getValue();
+
+            if (!nodeId.equals(nodeIdentityProvider.getNodeId())) {
+                redisTemplate.opsForValue().set(
+                    "node:" + nodeId,
+                    String.valueOf(info.getLastUpdated()),
+                    60, TimeUnit.SECONDS
+                );
             }
         }
 
