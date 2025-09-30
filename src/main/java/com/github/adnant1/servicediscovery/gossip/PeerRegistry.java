@@ -42,10 +42,14 @@ public class PeerRegistry {
 
         String self = nodeIdentityProvider.getNodeId();
         String selfAddress = extractAddress(self);
+
         List<String> peers = nodeIds.stream()
-                .map(key -> key.substring("node:".length())) // Remove "node:" prefix
+                .map(key -> key.substring("node:".length()))
+                .map(this::extractAddress) // Remove "node:" prefix
                 .filter(id -> !id.equals(selfAddress))
+                .distinct()
                 .collect(Collectors.toCollection(ArrayList::new));
+
 
         // Fallback to seed peers if no peers found
         if (peers.isEmpty()) {
@@ -61,7 +65,8 @@ public class PeerRegistry {
         }
 
         int randomIndex = ThreadLocalRandom.current().nextInt(peers.size());
-        return extractAddress(peers.get(randomIndex));
+        String selectedPeer = peers.get(randomIndex);
+        return selectedPeer;
     }
 
     /**
