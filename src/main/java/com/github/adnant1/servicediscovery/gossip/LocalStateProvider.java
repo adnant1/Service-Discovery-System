@@ -8,7 +8,10 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import com.github.adnant1.servicediscovery.registry.NodeInfo;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
+
+import ch.qos.logback.core.pattern.parser.Node;
 
 /**
  * Provider for dumping local service state from Redis.
@@ -70,5 +73,31 @@ public class LocalStateProvider {
         }
 
         return services;
+    }
+
+    /**
+     * Dumps all known nodes stored in local Redis.
+     * 
+     * @return a map of node IDs to their corresponding NodeInfo objects
+     */
+    public Map<String, NodeInfo> dumpNodes() {
+        Map<String, NodeInfo> nodes = new HashMap<>();
+        Set<String> keys = redisTemplate.keys("node:*");
+        if (keys == null || keys.isEmpty()) {
+            return nodes;   
+        }
+
+        for (String key: keys) {
+            String nodeId = key.substring("node:".length());
+
+            NodeInfo info = NodeInfo.newBuilder()
+                    .setNodeId(nodeId)
+                    .setLastUpdated(System.currentTimeMillis())
+                    .build();
+            
+            nodes.put(nodeId, info);
+        }
+
+        return nodes;
     }
 }
