@@ -34,6 +34,7 @@ public class GossipScheduler {
     public void runGossipRound() {
         String peer = peerRegistry.pickRandomPeer();
         if (peer == null) {
+            logger.info("No peers available for gossiping");
             return; // No peers available
         }
 
