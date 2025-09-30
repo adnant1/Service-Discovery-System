@@ -1,11 +1,15 @@
 package com.github.adnant1.servicediscovery.gossip;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.github.adnant1.servicediscovery.registry.GossipResponse;
+import com.github.adnant1.servicediscovery.registry.NodeInfo;
+import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
 /**
  * Scheduler that runs gossip rounds periodically for eventual consistency.
@@ -38,9 +42,11 @@ public class GossipScheduler {
             return; // No peers available
         }
 
-        var localState = localStateProvider.dumpServices();
+        Map<String, ServiceInstance> localState = localStateProvider.dumpServices();
+        Map<String, NodeInfo> localNodes = localStateProvider.dumpNodes();
+
         try {
-            GossipResponse response = gossipClient.sync(peer, localState);
+            GossipResponse response = gossipClient.sync(peer, localState, localNodes);
             logger.info("Gossip sync with peer {} succeeded: {}", peer, response.getMessage());
         } catch (Exception e) {
             // Log and ignore errors to avoid disrupting future gossip rounds
