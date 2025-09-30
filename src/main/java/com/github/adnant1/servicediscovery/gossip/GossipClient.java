@@ -23,12 +23,14 @@ public class GossipClient {
     /**
      * Sends local state to a peer node using the GossipService sync RPC.
      * 
-     * @param peerAddress the address of the peer node
+     * @param peerId the Id of the peer node
      * @param localState a map of instanceId -> ServiceInstance representing local state
      * @return GossipResponse from the peer node
      */
-    public GossipResponse sync(String peerAddress, Map<String, ServiceInstance> localState) {
-        String[] parts = peerAddress.split(":");
+    public GossipResponse sync(String peerId, Map<String, ServiceInstance> localState) {
+
+        // Parse host and port from peerId
+        String[] parts = peerId.split(":");
         String host = parts[0];
         int port = Integer.parseInt(parts[1]);
 
