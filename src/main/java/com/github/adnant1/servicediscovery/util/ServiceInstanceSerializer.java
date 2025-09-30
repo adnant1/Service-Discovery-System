@@ -1,11 +1,14 @@
 package com.github.adnant1.servicediscovery.util;
 
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
 /**
  * Utility class for serializing and deserializing ServiceInstance objects.
  */
+@Component
 public class ServiceInstanceSerializer {
     
     private final ObjectMapper objectMapper;
