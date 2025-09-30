@@ -9,5 +9,4 @@ spring:
   ttl-seconds: 30
 
   cluster:
-    seeds:
-      - localhost:50051
+    seeds: ${SEEDS:}
