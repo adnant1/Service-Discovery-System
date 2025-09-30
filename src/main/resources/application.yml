@@ -7,3 +7,7 @@ spring:
     port: ${SPRING_REDIS_PORT:6379}
 
   ttl-seconds: 30
+
+  cluster:
+    seeds:
+      - localhost:50051
