@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import com.github.adnant1.servicediscovery.registry.GossipRequest;
 import com.github.adnant1.servicediscovery.registry.GossipResponse;
 import com.github.adnant1.servicediscovery.registry.GossipServiceGrpc;
+import com.github.adnant1.servicediscovery.registry.NodeInfo;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
 import io.grpc.ManagedChannel;
@@ -27,7 +28,7 @@ public class GossipClient {
      * @param localState a map of instanceId -> ServiceInstance representing local state
      * @return GossipResponse from the peer node
      */
-    public GossipResponse sync(String peerAddress, Map<String, ServiceInstance> localState) {
+    public GossipResponse sync(String peerAddress, Map<String, ServiceInstance> localState, Map<String, NodeInfo> nodes) {
         String[] parts = peerAddress.split(":");
         String host = parts[0];
         int port = Integer.parseInt(parts[1]);
@@ -41,6 +42,7 @@ public class GossipClient {
         // Build the request and call the RPC
         GossipRequest request = GossipRequest.newBuilder()
                 .putAllInstances(localState)
+                .putAllNodes(nodes)
                 .build();
         
         GossipResponse response = stub.sync(request);
