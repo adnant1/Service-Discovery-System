@@ -1,8 +1,5 @@
 package com.github.adnant1.servicediscovery.identity;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -63,13 +60,8 @@ public class NodeIdentityProvider {
     private String generateNodeId(int port) {
         String uuid = java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 6);
 
-        try {
-            String hostname = InetAddress.getLocalHost().getHostName();
-            return hostname + ":" + port + "-" + uuid;
-        } catch (UnknownHostException e) {
-            // Fallback to localhost if hostname cannot be determined
-            return "localhost:" + port + "-" + uuid;
-        }
+        String hostname = System.getenv("NODE_HOST");
+        return hostname + ":" + port + "-" + uuid;
     }
 
 }
