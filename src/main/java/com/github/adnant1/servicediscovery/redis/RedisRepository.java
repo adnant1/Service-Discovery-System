@@ -44,6 +44,8 @@ public class RedisRepository {
 
         redisTemplate.opsForHash().putAll(key, fields);
         redisTemplate.expire(key, java.time.Duration.ofSeconds(ttlSeconds));
+
+        redisTemplate.opsForSet().add("services", key);
     } 
 
     /**
