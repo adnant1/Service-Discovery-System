@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -32,19 +33,16 @@ public class PeerRegistry {
      * @return a random peer node ID, or null if no peers are available
      */
     public String pickRandomPeer() {
-        String self = nodeIdentityProvider.getNodeId();
-        List<String> peers = new ArrayList<>();
-
-        // Discover peers from local Redis
-        Set<String> keys = redisTemplate.keys("node:*");
-        if (keys != null) {
-            for (String key : keys) {
-                String nodeId = redisTemplate.opsForValue().get(key);
-                if (nodeId != null && !nodeId.equals(self)) {
-                    peers.add(nodeId);
-                }
-            }
+        Set<String> nodeIds = redisTemplate.keys("node:*");
+        if (nodeIds == null || nodeIds.isEmpty()) {
+            return null;
         }
+
+        String self = nodeIdentityProvider.getNodeId();
+        List<String> peers = nodeIds.stream()
+                .map(key -> key.substring("node:".length())) // Remove "node:" prefix
+                .filter(id -> !id.equals(self))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         // Fallback to seed peers if no peers found
         if (peers.isEmpty()) {
