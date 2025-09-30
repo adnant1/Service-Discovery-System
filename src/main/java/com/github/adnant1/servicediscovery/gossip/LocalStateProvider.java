@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
 
+/**
+ * Provider for dumping local service state from Redis.
+ */
 @Component
 public class LocalStateProvider {
  
