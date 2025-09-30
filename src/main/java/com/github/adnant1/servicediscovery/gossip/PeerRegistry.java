@@ -60,7 +60,22 @@ public class PeerRegistry {
         }
 
         int randomIndex = ThreadLocalRandom.current().nextInt(peers.size());
-        return peers.get(randomIndex);
+        return extractAddress(peers.get(randomIndex));
     }
-    
+
+    /**
+     * Extracts the address (hostname:port) from a node ID.
+     * 
+     * @param nodeId the full node ID
+     * @return the address portion of the node ID
+     */
+    private String extractAddress(String nodeId) {
+        int dashIndex = nodeId.indexOf('-');
+
+        if (dashIndex == -1) {
+            return nodeId;
+        }
+
+        return nodeId.substring(0, dashIndex);
+    }
 }
