@@ -1,5 +1,6 @@
 package com.github.adnant1.servicediscovery.gossip;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,10 +18,12 @@ public class PeerRegistry {
 
     private final StringRedisTemplate redisTemplate;
     private final NodeIdentityProvider nodeIdentityProvider;
+    private final List<String> seedPeers;
 
-    public PeerRegistry(StringRedisTemplate redisTemplate, NodeIdentityProvider nodeIdentityProvider) {
+    public PeerRegistry(StringRedisTemplate redisTemplate, NodeIdentityProvider nodeIdentityProvider, List<String> seedPeers) {
         this.redisTemplate = redisTemplate;
         this.nodeIdentityProvider = nodeIdentityProvider;
+        this.seedPeers = seedPeers;
     }
 
     /**
@@ -29,20 +32,35 @@ public class PeerRegistry {
      * @return a random peer node ID, or null if no peers are available
      */
     public String pickRandomPeer() {
-        Set<String> allNodes = redisTemplate.opsForSet().members("nodes");
-        if (allNodes == null || allNodes.isEmpty()) {
-            return null;
+        String self = nodeIdentityProvider.getNodeId();
+        List<String> peers = new ArrayList<>();
+
+        // Discover peers from local Redis
+        Set<String> keys = redisTemplate.keys("node:*");
+        if (keys != null) {
+            for (String key : keys) {
+                String nodeId = redisTemplate.opsForValue().get(key);
+                if (nodeId != null && !nodeId.equals(self)) {
+                    peers.add(nodeId);
+                }
+            }
         }
 
-        String selfId = nodeIdentityProvider.getNodeId();
-        List<String> peers = allNodes.stream().filter(id -> !id.equals(selfId)).toList();
+        // Fallback to seed peers if no peers found
+        if (peers.isEmpty()) {
+            for (String seed : seedPeers) {
+                if (!seed.equals(self)) {
+                    peers.add(seed);
+                }
+            }
+        }
 
         if (peers.isEmpty()) {
-            return null;
+            return null; // No peers available
         }
 
-        int idx = ThreadLocalRandom.current().nextInt(peers.size());
-        return peers.get(idx);
+        int randomIndex = ThreadLocalRandom.current().nextInt(peers.size());
+        return peers.get(randomIndex);
     }
     
 }
