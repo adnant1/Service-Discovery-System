@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,8 @@ public class PeerRegistry {
     private final NodeIdentityProvider nodeIdentityProvider;
     private final List<String> seedPeers;
 
-    public PeerRegistry(StringRedisTemplate redisTemplate, NodeIdentityProvider nodeIdentityProvider, List<String> seedPeers) {
+    public PeerRegistry(StringRedisTemplate redisTemplate, NodeIdentityProvider nodeIdentityProvider, 
+                        @Value("${spring.cluster.seeds}")List<String> seedPeers) {
         this.redisTemplate = redisTemplate;
         this.nodeIdentityProvider = nodeIdentityProvider;
         this.seedPeers = seedPeers;
@@ -39,15 +41,16 @@ public class PeerRegistry {
         }
 
         String self = nodeIdentityProvider.getNodeId();
+        String selfAddress = extractAddress(self);
         List<String> peers = nodeIds.stream()
                 .map(key -> key.substring("node:".length())) // Remove "node:" prefix
-                .filter(id -> !id.equals(self))
+                .filter(id -> !id.equals(selfAddress))
                 .collect(Collectors.toCollection(ArrayList::new));
 
         // Fallback to seed peers if no peers found
         if (peers.isEmpty()) {
             for (String seed : seedPeers) {
-                if (!seed.equals(self)) {
+                if (!extractAddress(seed).equals(selfAddress)) {
                     peers.add(seed);
                 }
             }
