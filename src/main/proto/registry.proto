@@ -60,11 +60,17 @@ message DeregisterResponse {
 // Gossip Synchronization
 message GossipRequest {
     map<string, ServiceInstance> instances = 1;
+    map<string, NodeInfo> nodes = 2;
 }
 
 message GossipResponse {
     bool success = 1;
     string message = 2;
+}
+
+message NodeInfo {
+    string nodeId = 1;
+    int64 lastUpdated = 2;
 }
 
 // Registry Service Definition
