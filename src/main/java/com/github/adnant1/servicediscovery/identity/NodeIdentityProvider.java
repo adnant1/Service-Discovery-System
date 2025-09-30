@@ -40,16 +40,17 @@ public class NodeIdentityProvider {
      * @return the unique node ID
      */
     private String getOrCreateNodeId(int port){
-        String key = "node:id";
-
-        String existingId = redisTemplate.opsForValue().get(key);
-        if (existingId != null) {
-            return existingId;
-        } else {
-            String newId = generateNodeId(port);
-            redisTemplate.opsForValue().set(key, newId);
-            return newId;
+        if (this.nodeId != null) {
+            return this.nodeId;
         }
+
+        String newId = generateNodeId(port);
+
+        String key = "node:" + newId;
+        redisTemplate.opsForValue().set(key, newId);
+
+        this.nodeId = newId;
+        return newId;
     }
 
     /**
