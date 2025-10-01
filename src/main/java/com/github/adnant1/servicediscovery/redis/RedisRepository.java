@@ -47,9 +47,6 @@ public class RedisRepository {
 
         // Add to services set for easy lookup
         redisTemplate.opsForSet().add("service:" + serviceName, key);
-
-        // Add to global services set
-        redisTemplate.opsForSet().add("allServices", key);
     } 
 
     /**
@@ -63,7 +60,6 @@ public class RedisRepository {
         String key = serviceName + ":" + instanceId;
         Boolean result = redisTemplate.delete(key);
         redisTemplate.opsForSet().remove("service:" + serviceName, key);
-        redisTemplate.opsForSet().remove("allServices", key);
         return Boolean.TRUE.equals(result);
     }
 
