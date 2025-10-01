@@ -59,7 +59,7 @@ servicediscovery2:
     ports:
       - "50052:50051"
     depends_on:
-      - redis
+      - redis2
     environment:
       - NODE_HOST=servicediscovery2
       - SEEDS=servicediscovery:50051   # Always seed with the first node
