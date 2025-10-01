@@ -47,6 +47,9 @@ public class RedisRepository {
 
         // Add to services set for easy lookup
         redisTemplate.opsForSet().add("service:" + serviceName, key);
+
+        // Add to global services set
+        redisTemplate.opsForSet().add("allServices", key);
     } 
 
     /**
