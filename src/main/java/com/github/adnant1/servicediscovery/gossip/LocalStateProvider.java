@@ -31,15 +31,15 @@ public class LocalStateProvider {
     public Map<String, ServiceInstance> dumpServices() {
         Map<String, ServiceInstance> services = new HashMap<>();
 
-        // Retrieve all services from the global set
-        Set<String> allServices = redisTemplate.opsForSet().members("allServices");
-        if (allServices == null || allServices.isEmpty()) {
+        // Retrieve all service sets
+        Set<String> serviceKeys = redisTemplate.keys("service:*");
+        if (serviceKeys == null || serviceKeys.isEmpty()) {
             return services;
         }
 
-        for (String service: allServices) {
-            // For each service, get its instance keys from its set
-            Set<String> keys = redisTemplate.opsForSet().members("service:" + service);
+        for (String serviceKey: serviceKeys) {
+            // For each service set, get its instance keys
+            Set<String> keys = redisTemplate.opsForSet().members(serviceKey);
             if (keys == null || keys.isEmpty()) {
                 continue;
             }
@@ -51,7 +51,7 @@ public class LocalStateProvider {
                     continue;
                 }
 
-                String[] parts = key.split(":");
+                String[] parts = key.split(":", 2);
                 if (parts.length != 2) {
                     continue; // Invalid key format
                 }
