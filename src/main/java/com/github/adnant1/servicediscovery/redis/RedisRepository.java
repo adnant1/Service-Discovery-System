@@ -62,6 +62,8 @@ public class RedisRepository {
     public boolean deleteInstance(String serviceName, String instanceId) {
         String key = serviceName + ":" + instanceId;
         Boolean result = redisTemplate.delete(key);
+        redisTemplate.opsForSet().remove("service:" + serviceName, key);
+        redisTemplate.opsForSet().remove("allServices", key);
         return Boolean.TRUE.equals(result);
     }
 
@@ -98,6 +100,8 @@ public class RedisRepository {
                         .build();
                 
                 instances.add(instance);
+            } else {
+                redisTemplate.opsForSet().remove("service:" + serviceName, key);
             }
         }
 
