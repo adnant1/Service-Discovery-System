@@ -1,5 +1,6 @@
 package com.github.adnant1.servicediscovery.grpc;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -12,7 +13,6 @@ import com.github.adnant1.servicediscovery.registry.GossipResponse;
 import com.github.adnant1.servicediscovery.registry.GossipServiceGrpc;
 import com.github.adnant1.servicediscovery.registry.NodeInfo;
 import com.github.adnant1.servicediscovery.registry.ServiceInstance;
-import com.github.adnant1.servicediscovery.util.ServiceInstanceSerializer;
 
 import io.grpc.stub.StreamObserver;
 
@@ -25,13 +25,10 @@ import io.grpc.stub.StreamObserver;
 public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
 
     private final StringRedisTemplate redisTemplate;
-    private final ServiceInstanceSerializer serializer;
     private final NodeIdentityProvider nodeIdentityProvider;
 
-    public GossipServiceImpl(StringRedisTemplate redisTemplate, ServiceInstanceSerializer serializer, 
-                           NodeIdentityProvider nodeIdentityProvider) {
+    public GossipServiceImpl(StringRedisTemplate redisTemplate, NodeIdentityProvider nodeIdentityProvider) {
         this.redisTemplate = redisTemplate;
-        this.serializer = serializer;
         this.nodeIdentityProvider = nodeIdentityProvider;
     }
     
@@ -51,25 +48,49 @@ public class GossipServiceImpl extends GossipServiceGrpc.GossipServiceImplBase {
 
         // Service merge
         for (Map.Entry<String, ServiceInstance> entry: request.getInstancesMap().entrySet()) {
-            String serviceId = entry.getKey();
+            String serviceKey = entry.getKey();
             ServiceInstance incomingInstance = entry.getValue();
             
-            // Check if the incoming instance has expired
-            if (now - incomingInstance.getLastUpdated() > incomingInstance.getTtl()) {
-                redisTemplate.delete(serviceId);
+            // Check if the incoming instance has expired (TTL is in seconds, convert to millis)
+            if (now - incomingInstance.getLastUpdated() > (incomingInstance.getTtl() * 1000)) {
+                redisTemplate.delete(serviceKey);
                 continue;
             }
 
-            // Fetch local instance from Redis
-            // Deserializes the JSON string back to ServiceInstance using a built in protobuf method
-            String localJson = redisTemplate.opsForValue().get(serviceId);
-            ServiceInstance localInstance = serializer.deserialize(localJson);
-
+            // Fetch local instance from Redis hash
+            Map<Object, Object> localFields = redisTemplate.opsForHash().entries(serviceKey);
+            
             // Decide whether to insert/overwrite/ignore
-            if (localInstance == null || incomingInstance.getLastUpdated() > localInstance.getLastUpdated()) {
-                // Serialize the ServiceInstance to a JSON string using a built in protobuf method
-                String serialized = serializer.serialize(incomingInstance);
-                redisTemplate.opsForValue().set(serviceId, serialized, incomingInstance.getTtl(), TimeUnit.SECONDS);
+            boolean shouldUpdate = false;
+            if (localFields == null || localFields.isEmpty()) {
+                shouldUpdate = true; // New instance
+            } else {
+                String localTsStr = (String) localFields.get("timestamp");
+                if (localTsStr != null) {
+                    long localTimestamp = Long.parseLong(localTsStr);
+                    if (incomingInstance.getLastUpdated() > localTimestamp) {
+                        shouldUpdate = true; // Incoming is newer
+                    }
+                }
+            }
+
+            if (shouldUpdate) {
+                // Extract service name for the set
+                String[] parts = serviceKey.split(":", 2);
+                String serviceName = parts.length == 2 ? parts[0] : serviceKey;
+
+                // Store as hash
+                Map<String, String> fields = new HashMap<>();
+                fields.put("ip", incomingInstance.getIp());
+                fields.put("port", String.valueOf(incomingInstance.getPort()));
+                fields.put("timestamp", String.valueOf(incomingInstance.getLastUpdated()));
+
+                redisTemplate.opsForHash().putAll(serviceKey, fields);
+                redisTemplate.expire(serviceKey, incomingInstance.getTtl(), TimeUnit.SECONDS);
+                
+                // Add to service set
+                redisTemplate.opsForSet().add("service:" + serviceName, serviceKey);
+                
                 changes++;
             }
         }
