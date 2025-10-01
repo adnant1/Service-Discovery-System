@@ -44,22 +44,38 @@ This launches:
 
 ### 2. Running Multiple Nodes
 
-With this setup, you only need **one service definition** in `docker-compose.yml`. Scaling is handled automatically by Docker Compose.
+To scale out, add additional `servicediscovery` and `redis` entries to your `docker-compose.yml`:
 
-Bring up Redis + n discovery nodes with:
+```YAML
+redis2:
+  image: redis:7
+  container_name: redis2
+  ports:
+    - "6379:6379"
 
-```bash
-docker compose up --build --scale servicediscovery=n
+servicediscovery2:
+    build: .
+    container_name: servicediscovery2
+    ports:
+      - "50052:50051"
+    depends_on:
+      - redis
+    environment:
+      - NODE_HOST=servicediscovery2
+      - SEEDS=servicediscovery:50051   # Always seed with the first node
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
 ```
 
-Docker will start:
+- Each node must have a **unique container name + exposed port**
+- `SEEDS` should point to at least one existing node (commonly the first)
+- `NODE_HOST` is how the node identifies itself in gossip
 
-- `redis` → available on host port `6379`
-- `servicediscovery_1` → host port `50051`
-- `servicediscovery_2` → host port `50052`
-- `servicediscovery_3` → host port `50053`
+Spin them up with:
 
-Each node gets a unique container hostname (`servicediscovery_1`, `_2`, `_3`) so gossip can distinguish them. The first node (`servicediscovery_1`) is used as the seed, and additional nodes will sync their state through gossip.
+```bash
+docker compose up --build
+```
 
 ---
 
