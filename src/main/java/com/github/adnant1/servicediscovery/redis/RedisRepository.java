@@ -69,8 +69,7 @@ public class RedisRepository {
      * @return a list of type ServiceInstance
      */
     public List<ServiceInstance> getInstances(String serviceName) {
-        String pattern = serviceName + ":*";
-        Set<String> keys = redisTemplate.keys(pattern);
+        Set<String> keys = redisTemplate.opsForSet().members("service:" + serviceName);
 
         if (keys == null || keys.isEmpty()) {
             return List.of();
